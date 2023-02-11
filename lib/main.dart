@@ -1,9 +1,19 @@
-import 'package:chatgpt_voice_chat/colors.dart';
-import 'package:chatgpt_voice_chat/speech_screen.dart';
+import 'package:chatgpt_voice_chat/SplashScreen/SplashScreen.dart';
+import 'package:chatgpt_voice_chat/Widgets/colors.dart';
+import 'package:chatgpt_voice_chat/MainScreen/MainScreen.dart';
+import 'package:chatgpt_voice_chat/Widgets/constants.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
-
-void main() {
+import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+Future main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
+  SharedPreferences prefs =await SharedPreferences.getInstance();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(statusBarColor: Colors.transparent),
   );
@@ -21,11 +31,11 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const SpeechScreen(),
+      home: const SplashScreen(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch().copyWith(
-          primary: const Color(0xff00A67E),
+          primary: Constants.bgColor,
         ),
       ),
       title: "ChatGPT App",
