@@ -1,4 +1,5 @@
 import 'package:chatgpt_voice_chat/LoginScreen/LoginScreen.dart';
+import 'package:chatgpt_voice_chat/Widgets/constants.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +7,12 @@ import 'package:flutter/services.dart';
 import 'package:chatgpt_voice_chat/Widgets/RoundedButton.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+
+enum Gender {
+  male,
+  female,
+  //....
+}
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
@@ -15,10 +22,16 @@ class SignupScreen extends StatefulWidget {
 }
 
 class _SignupScreenState extends State<SignupScreen> {
+  final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  bool _obscureText = true;
+  final TextEditingController _confirmpasswordController =
+      TextEditingController();
+  bool maleSelected = false;
+  bool femaleSelected = false;
+  bool _obscureTextPassword = true;
+  bool _obscureTextConfirmPassword = true;
+  var selected;
   final _formKey = GlobalKey<FormState>();
   @override
   Widget build(BuildContext context) {
@@ -36,16 +49,8 @@ class _SignupScreenState extends State<SignupScreen> {
                 const Expanded(
                   child: SizedBox(),
                 ),
-
-                Image.asset(
-                  'assets/images/man.png',
-                  height: 100,
-                ),
-                const Expanded(
-                  child: SizedBox(),
-                ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: const [
                     Text(
                       "SIGNUP",
@@ -54,10 +59,17 @@ class _SignupScreenState extends State<SignupScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(
                   height: 40,
                 ),
+                Image.asset(
+                  'assets/images/man.png',
+                  height: 100,
+                ),
+                const Expanded(
+                  child: SizedBox(),
+                ),
+
                 TextFormField(
                   onChanged: (value) {
                     _nameController.text = value;
@@ -89,7 +101,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
                 //password input
                 TextFormField(
-                  obscureText: _obscureText,
+                  obscureText: _obscureTextPassword,
                   onChanged: (value) {
                     _passwordController.text = value;
                   },
@@ -101,16 +113,72 @@ class _SignupScreenState extends State<SignupScreen> {
                       suffixIcon: IconButton(
                         onPressed: () {
                           setState(() {
-                            _obscureText = !_obscureText;
+                            _obscureTextPassword = !_obscureTextPassword;
                           });
                         },
                         icon: const Icon(Icons.visibility),
                       )),
                 ),
+                const SizedBox(
+                  height: 15,
+                ),
+                TextFormField(
+                  obscureText: _obscureTextConfirmPassword,
+                  onChanged: (value) {
+                    _confirmpasswordController.text = value;
+                  },
+                  decoration: InputDecoration(
+
+                      // border: OutlineInputBorder(),
+                      hintText: 'Confirm Password',
+                      prefixIcon: const Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _obscureTextConfirmPassword =
+                                !_obscureTextConfirmPassword;
+                          });
+                        },
+                        icon: const Icon(Icons.visibility),
+                      )),
+                ),
+
                 const Expanded(
                   child: SizedBox(),
                 ),
+                Row(
+                  children: [
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.44,
+                      child: GenderWidget(
+                          onclick: () {
+                            selected = Gender.male;
+                            setState(() {});
+                          },
+                          isSelected: Gender.male == selected,
+                          title: 'Male',
+                          icon: Icons.male,
+                          backgroundColor: Color(0xFF0065FF)),
+                    ),
+                    Expanded(child: SizedBox()),
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.44,
+                      child: GenderWidget(
+                          isSelected: Gender.female == selected,
+                          onclick: () {
+                            selected = Gender.female;
+                            setState(() {});
+                          },
+                          title: 'Female',
+                          icon: Icons.female,
+                          backgroundColor: Colors.purpleAccent),
+                    ),
+                  ],
+                ),
                 //signup button
+                SizedBox(
+                  height: 28,
+                ),
                 RoundedButton(
                   text: "Create Account",
                   press: () async {
@@ -200,6 +268,73 @@ class _SignupScreenState extends State<SignupScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class GenderWidget extends StatelessWidget {
+  final VoidCallback onclick;
+  final String title;
+  final IconData icon;
+  final Color? backgroundColor;
+  final bool isSelected;
+
+  GenderWidget({
+    required this.backgroundColor,
+    required this.isSelected,
+    required this.onclick,
+    required this.title,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onclick,
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.black),
+          boxShadow: [
+            /*
+            BoxShadow(
+              color: Colors.white,
+            ),
+             BoxShadow(
+              color: isSelected ? backgroundColor! : Colors.white,
+              spreadRadius: -120.0,
+              blurRadius: 12.0,
+            ),*/
+          ],
+          borderRadius: BorderRadius.circular(20),
+        ),
+        //change color based on your need
+        child: Center(
+            child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            Text(
+              title,
+              style:
+                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+            ),
+            Icon(
+              icon,
+              ////??? What variable should i use to finish
+              color: isSelected == true ? backgroundColor : Colors.black,
+              size: 80,
+            ),
+            SizedBox(
+              height: 20,
+              //??? What variable should i use to finish
+              child: isSelected == true
+                  ? Text('Selected',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold, color: Colors.black))
+                  : null,
+            )
+          ],
+        )),
       ),
     );
   }
