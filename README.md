@@ -15,3 +15,4 @@ A few resources to get you started if this is your first Flutter project:
 ![](https://github.com/mananrg/Flutter_ChatGPT_Bot/blob/main/loginscreen.png  | width=100)
 ![](https://github.com/mananrg/Flutter_ChatGPT_Bot/blob/main/signupscreen.png | width=100)
 ![](https://github.com/mananrg/Flutter_ChatGPT_Bot/blob/main/mainscreen.png | width=100)
+<img src="https://github.com/mananrg/Flutter_ChatGPT_Bot/blob/main/splashscreen.png" width="80">
