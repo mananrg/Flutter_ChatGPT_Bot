@@ -1,4 +1,4 @@
-# chatgpt_voice_chat
+# ChatGPT ChatBot
 
 A Flutter application using the OpenAI GPT-3 (Generative Pretrained Transformer 3) API bringing advanced natural language processing capabilities to your app. With GPT-3, I am incorporating features like text generation, language translation, question-answering, and more into the Flutter app 
 
