@@ -1,22 +1,22 @@
 import 'package:chatgpt_voice_chat/LoginScreen/LoginScreen.dart';
-import 'package:chatgpt_voice_chat/Widgets/constants.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:chatgpt_voice_chat/Widgets/RoundedButton.dart';
 import 'package:awesome_snackbar_content/awesome_snackbar_content.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_storage/firebase_storage.dart' as firebaseStorage;
+import 'package:chatgpt_voice_chat/globalVar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../MainScreen/MainScreen.dart';
 
 enum Gender {
   male,
   female,
-  //....
 }
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({Key? key}) : super(key: key);
-  static String verify = "";
   @override
   State<SignupScreen> createState() => _SignupScreenState();
 }
@@ -32,9 +32,88 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _obscureTextPassword = true;
   bool _obscureTextConfirmPassword = true;
   var selected;
+  String genderSelected = "";
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   final _formKey = GlobalKey<FormState>();
+
+  void _register(String gender) async {
+    late User currentUser;
+    await _auth
+        .createUserWithEmailAndPassword(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+    )
+        .then((auth) async {
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          content: AwesomeSnackbarContent(
+            title: 'Congratulations!',
+            message: 'Succesfully Signed Up!',
+            contentType: ContentType.success,
+          ),
+        ));
+      currentUser = auth.user!;
+      userId = currentUser.uid!;
+      userEmail = currentUser.email!;
+      getUserName = _nameController.text.trim();
+
+      saveUserData(gender);
+
+
+    }).catchError((error) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(
+          elevation: 0,
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.transparent,
+          content: AwesomeSnackbarContent(
+            title: 'Error!',
+            message:
+                '${error.message + '\n Please contact the administrator!'}',
+            contentType: ContentType.failure,
+          ),
+        ));
+    });
+
+
+    if (currentUser != null) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => SpeechScreen(),
+        ),
+      );
+    }
+  }
+
+  Future<void> saveUserData(String gender) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setString('Name', _nameController.text);
+    prefs.setString('Gender', gender);
+    prefs.setString('Email', _emailController.text);
+    Map<String, dynamic> userData = {
+      'userName': _nameController.text.trim(),
+      'uid': userId,
+      'time': DateTime.now(),
+      'status': "approved",
+      'gender': gender,
+      'email': _emailController.text.trim()
+    };
+
+    FirebaseFirestore.instance.collection("users").doc(userId).set(userData);
+  }
+
   @override
   Widget build(BuildContext context) {
+
+
+    double screenWidth = MediaQuery.of(context).size.width;
     return Form(
       key: _formKey,
       child: Scaffold(
@@ -63,13 +142,12 @@ class _SignupScreenState extends State<SignupScreen> {
                   height: 40,
                 ),
                 Image.asset(
-                  'assets/images/man.png',
+                  'assets/images/password.png',
                   height: 100,
                 ),
                 const Expanded(
                   child: SizedBox(),
                 ),
-
                 TextFormField(
                   onChanged: (value) {
                     _nameController.text = value;
@@ -83,7 +161,6 @@ class _SignupScreenState extends State<SignupScreen> {
                 const SizedBox(
                   height: 15,
                 ),
-
                 //email id input
                 TextFormField(
                   onChanged: (value) {
@@ -148,26 +225,33 @@ class _SignupScreenState extends State<SignupScreen> {
                 ),
                 Row(
                   children: [
-                    Container(
+                    SizedBox(
                       width: MediaQuery.of(context).size.width * 0.44,
                       child: GenderWidget(
-                          onclick: () {
-                            selected = Gender.male;
-                            setState(() {});
-                          },
-                          isSelected: Gender.male == selected,
-                          title: 'Male',
-                          icon: Icons.male,
-                          backgroundColor: Color(0xFF0065FF)),
+                        onclick: () {
+                          selected = Gender.male;
+                          setState(() {
+                            genderSelected = "Male";
+                          });
+                        },
+                        isSelected: Gender.male == selected,
+                        title: 'Male',
+                        icon: Icons.male,
+                        backgroundColor: const Color(0xFF0065FF),
+                      ),
                     ),
-                    Expanded(child: SizedBox()),
-                    Container(
+                    const Expanded(child: SizedBox()),
+                    SizedBox(
                       width: MediaQuery.of(context).size.width * 0.44,
                       child: GenderWidget(
                           isSelected: Gender.female == selected,
                           onclick: () {
                             selected = Gender.female;
-                            setState(() {});
+
+
+                            setState(() {
+                              genderSelected = "Female";
+                            });
                           },
                           title: 'Female',
                           icon: Icons.female,
@@ -176,7 +260,7 @@ class _SignupScreenState extends State<SignupScreen> {
                   ],
                 ),
                 //signup button
-                SizedBox(
+                const SizedBox(
                   height: 28,
                 ),
                 RoundedButton(
@@ -184,52 +268,27 @@ class _SignupScreenState extends State<SignupScreen> {
                   press: () async {
                     if (RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
                             .hasMatch(_emailController.text) &&
-                        _passwordController.text.isNotEmpty) {
+                        _passwordController.text ==
+                            _confirmpasswordController.text) {
                       try {
-                        final credential = await FirebaseAuth.instance
-                            .createUserWithEmailAndPassword(
-                          email: _emailController.text.trim(),
-                          password: _passwordController.text.trim(),
-                        );
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(
-                            SnackBar(
-                              elevation: 0,
-                              behavior: SnackBarBehavior.floating,
-                              backgroundColor: Colors.transparent,
-                              content: AwesomeSnackbarContent(
-                                title: 'Great!',
-                                message: 'Successfully Signed Up!',
-                                contentType: ContentType.success,
-                              ),
-                            ),
-                          );
-                        setState(() {
-                          _emailController.text = "";
-                          _passwordController.text = "";
-                          _nameController.text = "";
-                        });
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
-                          ),
-                        );
-                      } on FirebaseAuthException catch (e) {
-                        ScaffoldMessenger.of(context)
-                          ..hideCurrentSnackBar()
-                          ..showSnackBar(SnackBar(
-                            elevation: 0,
-                            behavior: SnackBarBehavior.floating,
-                            backgroundColor: Colors.transparent,
-                            content: AwesomeSnackbarContent(
-                              title: 'On Snap!',
-                              message: '${e.message}',
-                              contentType: ContentType.failure,
-                            ),
-                          ));
+                        _register(genderSelected);
+                      } catch (e) {
+                        print(e);
                       }
+                    } else if (_passwordController.text !=
+                        _confirmpasswordController.text) {
+                      ScaffoldMessenger.of(context)
+                        ..hideCurrentSnackBar()
+                        ..showSnackBar(SnackBar(
+                          elevation: 0,
+                          behavior: SnackBarBehavior.floating,
+                          backgroundColor: Colors.transparent,
+                          content: AwesomeSnackbarContent(
+                            title: 'Password Error!',
+                            message: 'Passwords do not match',
+                            contentType: ContentType.failure,
+                          ),
+                        ));
                     }
                   },
                   color: const Color(0xFF0065FF),
@@ -280,7 +339,8 @@ class GenderWidget extends StatelessWidget {
   final Color? backgroundColor;
   final bool isSelected;
 
-  GenderWidget({
+  const GenderWidget({
+    super.key,
     required this.backgroundColor,
     required this.isSelected,
     required this.onclick,
@@ -295,17 +355,6 @@ class GenderWidget extends StatelessWidget {
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(color: Colors.black),
-          boxShadow: [
-            /*
-            BoxShadow(
-              color: Colors.white,
-            ),
-             BoxShadow(
-              color: isSelected ? backgroundColor! : Colors.white,
-              spreadRadius: -120.0,
-              blurRadius: 12.0,
-            ),*/
-          ],
           borderRadius: BorderRadius.circular(20),
         ),
         //change color based on your need
@@ -315,8 +364,8 @@ class GenderWidget extends StatelessWidget {
           children: [
             Text(
               title,
-              style:
-                  TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+              style: const TextStyle(
+                  fontWeight: FontWeight.bold, color: Colors.black),
             ),
             Icon(
               icon,
@@ -328,9 +377,11 @@ class GenderWidget extends StatelessWidget {
               height: 20,
               //??? What variable should i use to finish
               child: isSelected == true
-                  ? Text('Selected',
+                  ? const Text(
+                      'Selected',
                       style: TextStyle(
-                          fontWeight: FontWeight.bold, color: Colors.black))
+                          fontWeight: FontWeight.bold, color: Colors.black),
+                    )
                   : null,
             )
           ],

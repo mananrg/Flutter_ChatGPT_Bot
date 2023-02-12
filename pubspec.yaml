@@ -47,7 +47,8 @@ dependencies:
   google_sign_in:
   cloud_firestore:
   intl_phone_field:
-
+  image_picker:
+  firebase_storage:
 dev_dependencies:
   flutter_test:
     sdk: flutter

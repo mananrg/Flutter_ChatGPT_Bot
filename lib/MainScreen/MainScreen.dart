@@ -1,7 +1,9 @@
 import 'package:chatgpt_voice_chat/LoginScreen/LoginScreen.dart';
 import 'package:chatgpt_voice_chat/Widgets/ApiServices.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
 import '../Widgets/ChatModels.dart';
@@ -17,7 +19,6 @@ class SpeechScreen extends StatefulWidget {
 class _SpeechScreenState extends State<SpeechScreen> {
   String apiKey = "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";
   var text = "";
-
   final List<ChatMessage> messages = [];
   final TextEditingController _textinput = TextEditingController();
   SpeechToText speechToText = SpeechToText();
@@ -29,6 +30,7 @@ class _SpeechScreenState extends State<SpeechScreen> {
 
   @override
   Widget build(BuildContext context) {
+  
     return Scaffold(
       drawer: MainDrawer(),
       appBar: AppBar(
@@ -60,11 +62,12 @@ class _SpeechScreenState extends State<SpeechScreen> {
                   borderRadius: BorderRadius.circular(12),
                   color: Constants.chatBgColor,
                 ),
+
                 child: ListView(
                   children: [
                     ChatBubble(
                         chattext:
-                            "Hello, This is powered by Chat-GPT \n Start by typing, Please wait for response!",
+                            "Hello , This is powered by Chat-GPT \n Start by typing, Please wait for response!",
                         type: ChatMessageType.bot),
                     const SizedBox(
                       height: 6,
@@ -236,7 +239,10 @@ class _SpeechScreenState extends State<SpeechScreen> {
                   TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
             ),
             onPressed: () {
-              messages.clear();
+              setState(() {
+                messages.clear();
+
+              });
             },
           ),
           TextButton(

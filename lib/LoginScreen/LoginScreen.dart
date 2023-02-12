@@ -16,8 +16,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  TextEditingController _emailController = TextEditingController();
-  TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _obscureText = true;
 
   @override
@@ -131,6 +131,18 @@ class _LoginScreenState extends State<LoginScreen> {
                     SharedPreferences prefs =
                         await SharedPreferences.getInstance();
                     prefs.setString("email", "useremail@gmail.com");
+                    ScaffoldMessenger.of(context)
+                      ..hideCurrentSnackBar()
+                      ..showSnackBar(SnackBar(
+                        elevation: 0,
+                        behavior: SnackBarBehavior.floating,
+                        backgroundColor: Colors.transparent,
+                        content: AwesomeSnackbarContent(
+                          title: 'Congratulations!',
+                          message: 'Succesfully Logged In!',
+                          contentType: ContentType.success,
+                        ),
+                      ));
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
