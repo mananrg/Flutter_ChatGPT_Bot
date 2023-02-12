@@ -17,7 +17,7 @@ class SpeechScreen extends StatefulWidget {
 }
 
 class _SpeechScreenState extends State<SpeechScreen> {
-  String apiKey = "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";
+  String apiKey = "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";
   var text = "";
   final List<ChatMessage> messages = [];
   final TextEditingController _textinput = TextEditingController();
